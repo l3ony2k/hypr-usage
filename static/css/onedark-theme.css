@@ -308,9 +308,25 @@ body {
     margin-bottom: var(--spacing-lg);
 }
 
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+}
+
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+    flex-wrap: wrap;
+}
+
 .table-section h3 {
     color: var(--color-red);
-    margin-bottom: var(--spacing-md);
+    margin: 0;
     font-size: 1.1em;
     font-weight: 600;
 }
@@ -372,11 +388,71 @@ tr:hover {
     font-family: var(--font-family);
 }
 
+/* View Toggle Controls */
+.view-controls {
+    display: flex;
+    gap: var(--spacing-xs);
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.view-toggle-btn {
+    padding: 4px 10px;
+    background: var(--border-primary);
+    color: var(--text-primary);
+    border: none;
+    cursor: pointer;
+    font-size: var(--font-size-small);
+    transition: background var(--transition-speed);
+    font-family: inherit;
+}
+
+.view-toggle-btn:hover {
+    background: var(--border-secondary);
+}
+
+.view-toggle-btn.active {
+    background: var(--color-blue);
+    color: var(--bg-primary);
+}
+
+/* Chart Containers */
+.chart-container {
+    position: relative;
+    height: 400px;
+    margin-bottom: var(--spacing-md);
+    display: none;
+}
+
+.chart-container.active {
+    display: block;
+}
+
+/* Table containers - ensure they're visible by default */
+.table-container {
+    overflow-x: auto;
+    max-height: 500px;
+    overflow-y: auto;
+    border: var(--border-width) solid var(--border-primary);
+    display: block;
+}
+
+.chart-container canvas {
+    background: var(--bg-primary);
+    border: var(--border-width) solid var(--border-primary);
+}
+
+/* Responsive chart sizing */
+@media (max-width: 768px) {
+    .chart-container {
+        height: 300px;
+    }
+}
+
 /* Filter Controls */
 .filter-controls {
     display: flex;
     gap: var(--spacing-md);
-    margin-bottom: var(--spacing-md);
     align-items: center;
     flex-wrap: wrap;
 }
@@ -547,5 +623,25 @@ tr:hover {
 
     .filter-input {
         min-width: auto;
+    }
+
+    .section-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--spacing-sm);
+    }
+
+    .header-controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--spacing-sm);
+    }
+
+    .view-controls {
+        justify-content: center;
+    }
+
+    .filter-controls {
+        justify-content: center;
     }
 }

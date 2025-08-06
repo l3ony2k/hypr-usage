@@ -4,12 +4,13 @@ A simple web dashboard to view your HyprLab API usage statistics with caching an
 
 ## Features
 
-- **Table-based data display** - No more growing charts, clean tabular format
+- **Multiple data views** - Tables, bar charts, and pie charts for data visualization
 - **Smart caching** - Data is cached for 30 minutes to reduce API calls
 - **Manual refresh** - Force refresh data when needed
 - **Date range filtering** - View usage for specific time periods
 - **Model filtering** - Search and filter models by name
 - **Usage filtering** - Hide zero usage or small amounts
+- **OneDark themed charts** - Beautiful charts that match the terminal aesthetic
 - **Responsive design** - Works on desktop and mobile
 
 ## Quick Start
@@ -60,6 +61,19 @@ export HYPRLAB_API_KEY="your-api-key-here"
 - **90 Days** - Last 90 days
 - **Custom Range** - Select specific start and end dates
 
+## Data Visualization
+
+### View Options
+- **Table View** - Traditional tabular data display
+- **Bar Chart** - Visual comparison of usage amounts
+- **Pie Chart** - Proportional usage breakdown (model usage only)
+
+### Chart Features
+- **OneDark themed** - Charts match the terminal color scheme
+- **Interactive tooltips** - Hover for detailed information
+- **Responsive design** - Charts adapt to screen size
+- **Real-time updates** - Charts update when filters change
+
 ## Filtering Options
 
 - **Search models** - Type to filter models by name
@@ -77,11 +91,23 @@ export HYPRLAB_API_KEY="your-api-key-here"
 ## Files
 
 - `app.py` - Flask web server
-- `templates/index.html` - Dashboard HTML/CSS/JavaScript
+- `templates/index.html` - Dashboard HTML with Chart.js integration
+- `static/css/onedark-theme.css` - OneDark theme styles with chart support
 - `requirements.txt` - Python dependencies
+- `config.example.py` - Configuration template
 - `launch_dashboard.bat` - Windows batch launcher
 - `launch_dashboard.ps1` - PowerShell launcher (more reliable)
 - `🚀 Launch Dashboard.bat` - Main launcher (tries PowerShell first)
+
+## Dependencies
+
+### Python Dependencies
+- Flask - Web framework
+- Requests - HTTP client
+- Flask-CORS - Cross-origin resource sharing
+
+### JavaScript Dependencies (CDN)
+- Chart.js 4.4.0 - Chart visualization library
 
 ## Troubleshooting
 

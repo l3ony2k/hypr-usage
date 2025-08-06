@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HyprLab Usage Dashboard</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/onedark-theme.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
 </head>
 
 <body>
@@ -90,21 +91,30 @@
                 </div>
             </div>
 
-            <div class="table-section">
-                <h3>Model Usage Breakdown</h3>
-                <div class="filter-controls">
-                    <input type="text" class="filter-input" id="modelFilter" placeholder="Search models..."
-                        onkeyup="filterModels()">
-                    <div class="filter-checkbox">
-                        <input type="checkbox" id="hideZeroUsage" onchange="updateTables()" checked>
-                        <label for="hideZeroUsage">Hide $0.00 usage</label>
-                    </div>
-                    <div class="filter-checkbox">
-                        <input type="checkbox" id="hideSmallUsage" onchange="updateTables()">
-                        <label for="hideSmallUsage">Hide usage under $1.00</label>
+            <div class="table-section" id="modelUsageSection">
+                <div class="section-header">
+                    <h3>Model Usage Breakdown</h3>
+                    <div class="header-controls">
+                        <div class="filter-controls">
+                            <input type="text" class="filter-input" id="modelFilter" placeholder="Search models..."
+                                onkeyup="filterModels()">
+                            <div class="filter-checkbox">
+                                <input type="checkbox" id="hideZeroUsage" onchange="updateTables()" checked>
+                                <label for="hideZeroUsage">Hide $0.00 usage</label>
+                            </div>
+                            <div class="filter-checkbox">
+                                <input type="checkbox" id="hideSmallUsage" onchange="updateTables()">
+                                <label for="hideSmallUsage">Hide usage under $1.00</label>
+                            </div>
+                        </div>
+                        <div class="view-controls">
+                            <button class="view-toggle-btn active" onclick="switchModelView('table', this)">Table</button>
+                            <button class="view-toggle-btn" onclick="switchModelView('bar', this)">Bar Chart</button>
+                            <button class="view-toggle-btn" onclick="switchModelView('pie', this)">Pie Chart</button>
+                        </div>
                     </div>
                 </div>
-                <div class="table-container">
+                <div id="modelTableView" class="table-container">
                     <table id="modelsTable">
                         <thead>
                             <tr>
@@ -117,17 +127,32 @@
                         </tbody>
                     </table>
                 </div>
+                <div id="modelBarChartView" class="chart-container">
+                    <canvas id="modelBarChart"></canvas>
+                </div>
+                <div id="modelPieChartView" class="chart-container">
+                    <canvas id="modelPieChart"></canvas>
+                </div>
             </div>
 
-            <div class="table-section">
-                <h3>Daily Usage Breakdown</h3>
-                <div class="table-container">
+            <div class="table-section" id="dailyUsageSection">
+                <div class="section-header">
+                    <h3>Daily Usage Breakdown</h3>
+                    <div class="view-controls">
+                        <button class="view-toggle-btn active" onclick="switchDailyView('table', this)">Table</button>
+                        <button class="view-toggle-btn" onclick="switchDailyView('bar', this)">Bar Chart</button>
+                    </div>
+                </div>
+                <div id="dailyTableView" class="table-container">
                     <table id="dailyTable">
                         <thead id="dailyTableHead">
                         </thead>
                         <tbody id="dailyTableBody">
                         </tbody>
                     </table>
+                </div>
+                <div id="dailyBarChartView" class="chart-container">
+                    <canvas id="dailyBarChart"></canvas>
                 </div>
             </div>
         </div>
@@ -483,6 +508,403 @@
             currentDateRange = 'yesterday';
             updateTables();
         }
+
+        // Chart variables
+        let modelBarChart = null;
+        let modelPieChart = null;
+        let dailyBarChart = null;
+        let currentModelView = 'table';
+        let currentDailyView = 'table';
+
+        // OneDark theme colors for charts
+        const chartColors = {
+            primary: '#61afef',
+            success: '#98c379',
+            warning: '#e5c07b',
+            danger: '#e06c75',
+            info: '#56b6c2',
+            purple: '#c678dd',
+            background: '#21252b',
+            secondary: '#282c34',
+            border: '#3e4451',
+            text: '#abb2bf',
+            textSecondary: '#5c6370'
+        };
+
+        const chartColorPalette = [
+            chartColors.primary,
+            chartColors.success,
+            chartColors.warning,
+            chartColors.danger,
+            chartColors.info,
+            chartColors.purple,
+            '#d19a66',
+            '#56b6c2',
+            '#be5046',
+            '#4078f2'
+        ];
+
+        // Chart.js default configuration
+        Chart.defaults.color = chartColors.text;
+        Chart.defaults.borderColor = chartColors.border;
+        Chart.defaults.backgroundColor = chartColors.background;
+
+        // View switching functions
+        function switchModelView(viewType, buttonElement) {
+            try {
+                console.log('switchModelView called with:', viewType, buttonElement);
+                
+                // Update button states - target the specific section
+                const modelSection = document.getElementById('modelUsageSection');
+                if (!modelSection) {
+                    console.error('Model section not found');
+                    return;
+                }
+                
+                modelSection.querySelectorAll('.view-toggle-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                if (!buttonElement) {
+                    console.error('Button element is null');
+                    return;
+                }
+                buttonElement.classList.add('active');
+
+                // Hide all views
+                const tableView = document.getElementById('modelTableView');
+                const barChartView = document.getElementById('modelBarChartView');
+                const pieChartView = document.getElementById('modelPieChartView');
+                
+                if (tableView) tableView.style.display = 'none';
+                if (barChartView) barChartView.classList.remove('active');
+                if (pieChartView) pieChartView.classList.remove('active');
+
+                // Show selected view
+                currentModelView = viewType;
+                if (viewType === 'table') {
+                    if (tableView) tableView.style.display = 'block';
+                } else if (viewType === 'bar') {
+                    if (barChartView) barChartView.classList.add('active');
+                    updateModelBarChart();
+                } else if (viewType === 'pie') {
+                    if (pieChartView) pieChartView.classList.add('active');
+                    updateModelPieChart();
+                }
+                
+                console.log('switchModelView completed, currentModelView:', currentModelView);
+            } catch (error) {
+                console.error('Error in switchModelView:', error);
+            }
+        }
+
+        function switchDailyView(viewType, buttonElement) {
+            // Update button states - target the specific section
+            const dailySection = document.getElementById('dailyUsageSection');
+            if (!dailySection) {
+                console.error('Daily section not found');
+                return;
+            }
+            
+            dailySection.querySelectorAll('.view-toggle-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            buttonElement.classList.add('active');
+
+            // Hide all views
+            document.getElementById('dailyTableView').style.display = 'none';
+            document.getElementById('dailyBarChartView').classList.remove('active');
+
+            // Show selected view
+            currentDailyView = viewType;
+            if (viewType === 'table') {
+                document.getElementById('dailyTableView').style.display = 'block';
+            } else if (viewType === 'bar') {
+                document.getElementById('dailyBarChartView').classList.add('active');
+                updateDailyBarChart();
+            }
+        }
+
+        // Chart creation and update functions
+        function updateModelBarChart() {
+            const dateRangeData = getFilteredDateRange();
+            const hideZeroUsage = document.getElementById('hideZeroUsage').checked;
+            const hideSmallUsage = document.getElementById('hideSmallUsage').checked;
+            const filterText = document.getElementById('modelFilter').value.toLowerCase();
+
+            // Calculate model usage for the selected date range
+            const modelUsage = {};
+            dateRangeData.forEach(day => {
+                Object.keys(day).forEach(key => {
+                    if (key !== 'date') {
+                        const value = roundMoney(day[key]);
+                        modelUsage[key] = (modelUsage[key] || 0) + value;
+                    }
+                });
+            });
+
+            // Filter and sort models
+            const filteredModels = Object.entries(modelUsage)
+                .filter(([model, usage]) => {
+                    if (hideZeroUsage && usage === 0) return false;
+                    if (hideSmallUsage && usage < 1.00) return false;
+                    if (filterText && !model.toLowerCase().includes(filterText)) return false;
+                    return true;
+                })
+                .sort(([, a], [, b]) => b - a)
+                .slice(0, 20); // Limit to top 20 for readability
+
+            const ctx = document.getElementById('modelBarChart').getContext('2d');
+            
+            if (modelBarChart) {
+                modelBarChart.destroy();
+            }
+
+            modelBarChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: filteredModels.map(([model]) => model.length > 15 ? model.substring(0, 15) + '...' : model),
+                    datasets: [{
+                        label: 'Usage ($)',
+                        data: filteredModels.map(([, usage]) => usage),
+                        backgroundColor: chartColors.primary,
+                        borderColor: chartColors.border,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: chartColors.secondary,
+                            titleColor: chartColors.text,
+                            bodyColor: chartColors.text,
+                            borderColor: chartColors.border,
+                            borderWidth: 1,
+                            callbacks: {
+                                title: function(context) {
+                                    const index = context[0].dataIndex;
+                                    return filteredModels[index][0];
+                                },
+                                label: function(context) {
+                                    return 'Usage: $' + context.parsed.y.toFixed(2);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: chartColors.border
+                            },
+                            ticks: {
+                                color: chartColors.text,
+                                callback: function(value) {
+                                    return '$' + value.toFixed(2);
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: chartColors.border
+                            },
+                            ticks: {
+                                color: chartColors.text,
+                                maxRotation: 45
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateModelPieChart() {
+            const dateRangeData = getFilteredDateRange();
+            const hideZeroUsage = document.getElementById('hideZeroUsage').checked;
+            const hideSmallUsage = document.getElementById('hideSmallUsage').checked;
+            const filterText = document.getElementById('modelFilter').value.toLowerCase();
+
+            // Calculate model usage for the selected date range
+            const modelUsage = {};
+            dateRangeData.forEach(day => {
+                Object.keys(day).forEach(key => {
+                    if (key !== 'date') {
+                        const value = roundMoney(day[key]);
+                        modelUsage[key] = (modelUsage[key] || 0) + value;
+                    }
+                });
+            });
+
+            // Filter and sort models
+            const filteredModels = Object.entries(modelUsage)
+                .filter(([model, usage]) => {
+                    if (hideZeroUsage && usage === 0) return false;
+                    if (hideSmallUsage && usage < 1.00) return false;
+                    if (filterText && !model.toLowerCase().includes(filterText)) return false;
+                    return true;
+                })
+                .sort(([, a], [, b]) => b - a)
+                .slice(0, 10); // Limit to top 10 for pie chart readability
+
+            const ctx = document.getElementById('modelPieChart').getContext('2d');
+            
+            if (modelPieChart) {
+                modelPieChart.destroy();
+            }
+
+            modelPieChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: filteredModels.map(([model]) => model.length > 20 ? model.substring(0, 20) + '...' : model),
+                    datasets: [{
+                        data: filteredModels.map(([, usage]) => usage),
+                        backgroundColor: chartColorPalette.slice(0, filteredModels.length),
+                        borderColor: chartColors.border,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                color: chartColors.text,
+                                usePointStyle: true,
+                                padding: 15
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: chartColors.secondary,
+                            titleColor: chartColors.text,
+                            bodyColor: chartColors.text,
+                            borderColor: chartColors.border,
+                            borderWidth: 1,
+                            callbacks: {
+                                title: function(context) {
+                                    const index = context[0].dataIndex;
+                                    return filteredModels[index][0];
+                                },
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                    return 'Usage: $' + context.parsed.toFixed(2) + ' (' + percentage + '%)';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateDailyBarChart() {
+            const dateRangeData = getFilteredDateRange();
+            
+            if (dateRangeData.length === 0) {
+                return;
+            }
+
+            // Calculate daily totals
+            const dailyTotals = dateRangeData.map(day => {
+                let total = 0;
+                Object.keys(day).forEach(key => {
+                    if (key !== 'date') {
+                        total += roundMoney(day[key]);
+                    }
+                });
+                return {
+                    date: day.date,
+                    total: total
+                };
+            }).reverse(); // Reverse to show chronologically
+
+            const ctx = document.getElementById('dailyBarChart').getContext('2d');
+            
+            if (dailyBarChart) {
+                dailyBarChart.destroy();
+            }
+
+            dailyBarChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: dailyTotals.map(item => new Date(item.date).toLocaleDateString()),
+                    datasets: [{
+                        label: 'Daily Usage ($)',
+                        data: dailyTotals.map(item => item.total),
+                        backgroundColor: chartColors.success,
+                        borderColor: chartColors.border,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: chartColors.secondary,
+                            titleColor: chartColors.text,
+                            bodyColor: chartColors.text,
+                            borderColor: chartColors.border,
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Usage: $' + context.parsed.y.toFixed(2);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: chartColors.border
+                            },
+                            ticks: {
+                                color: chartColors.text,
+                                callback: function(value) {
+                                    return '$' + value.toFixed(2);
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: chartColors.border
+                            },
+                            ticks: {
+                                color: chartColors.text,
+                                maxRotation: 45
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update the existing updateTables function to also update charts
+        const originalUpdateTables = updateTables;
+        updateTables = function() {
+            originalUpdateTables();
+            
+            // Update charts if they are currently visible
+            if (currentModelView === 'bar') {
+                updateModelBarChart();
+            } else if (currentModelView === 'pie') {
+                updateModelPieChart();
+            }
+            
+            if (currentDailyView === 'bar') {
+                updateDailyBarChart();
+            }
+        };
 
         // Initialize the app
         fetchData();
