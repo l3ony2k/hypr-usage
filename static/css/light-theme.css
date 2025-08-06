@@ -1,0 +1,55 @@
+/* Light Theme Variables - Alternative to OneDark */
+:root {
+    /* Background Colors */
+    --bg-primary: #ffffff;      /* Main background */
+    --bg-secondary: #f8f9fa;    /* Sections/cards */
+    --bg-tertiary: #e9ecef;     /* Hover states */
+    
+    /* Border Colors */
+    --border-primary: #dee2e6;  /* Main borders */
+    --border-secondary: #adb5bd; /* Hover borders */
+    
+    /* Text Colors */
+    --text-primary: #212529;    /* Main text */
+    --text-secondary: #6c757d;  /* Muted text */
+    --text-tertiary: #000000;   /* High contrast text */
+    
+    /* Accent Colors */
+    --color-red: #dc3545;       /* Headers, errors */
+    --color-green: #28a745;     /* Success, credits */
+    --color-blue: #007bff;      /* Buttons, links */
+    --color-yellow: #ffc107;    /* Warnings, highlights */
+    --color-purple: #6f42c1;    /* Special elements */
+    --color-cyan: #17a2b8;      /* Info */
+    
+    /* Usage Type Colors */
+    --usage-prompt: var(--color-blue);
+    --usage-completion: var(--color-green);
+    --usage-audio: var(--color-yellow);
+    --usage-images: var(--color-red);
+    --usage-video: var(--color-purple);
+    --usage-embeddings: var(--color-cyan);
+    --usage-total: var(--color-purple);
+    
+    /* Font Settings */
+    --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --font-size-small: 11px;
+    --font-size-normal: 12px;
+    --font-size-medium: 14px;
+    --font-size-large: 16px;
+    --font-size-xlarge: 18px;
+    
+    /* Spacing */
+    --spacing-xs: 5px;
+    --spacing-sm: 8px;
+    --spacing-md: 12px;
+    --spacing-lg: 15px;
+    --spacing-xl: 20px;
+    
+    /* Layout */
+    --border-width: 1px;
+    --transition-speed: 0.2s;
+}
+
+/* Import the main structure from onedark-theme.css */
+/* This demonstrates how you can create theme variants */

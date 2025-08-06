@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HyprLab Usage Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/onedark-theme.css') }}">
+</head>
+
+<body>
+    <div class="container">
+        <div id="loading" class="loading">
+            Loading your HyprLab usage data...
+        </div>
+
+        <div id="error" class="error" style="display: none;"></div>
+
+        <div id="content" style="display: none;">
+            <div class="header">
+                <div class="user-info">
+                    <div class="user-details">
+                        <h1 id="discord-name">Loading...</h1>
+                        <p>Discord ID: <span id="discord-id">Loading...</span></p>
+                    </div>
+                    <div class="credit-info">
+                        <div class="credit-amount" id="credit-left">$0.00</div>
+                        <div class="credit-label">Credits Remaining</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls-section">
+                <div class="controls-grid">
+                    <div class="refresh-section">
+                        <button class="refresh-btn" id="refreshBtn" onclick="refreshData()">
+                            Refresh Data
+                        </button>
+                        <div class="cache-status" id="cacheStatus">
+                            Loading cache status...
+                        </div>
+                    </div>
+                    <div class="date-controls">
+                        <div class="quick-date-buttons">
+                            <button class="quick-date-btn" onclick="setYesterday(this)">Yesterday</button>
+                            <button class="quick-date-btn active" onclick="setDateRange(7, this)">7 Days</button>
+                            <button class="quick-date-btn" onclick="setDateRange(14, this)">14 Days</button>
+                            <button class="quick-date-btn" onclick="setDateRange(30, this)">30 Days</button>
+                            <button class="quick-date-btn" onclick="setDateRange(90, this)">90 Days</button>
+                        </div>
+                        <div class="date-inputs">
+                            <input type="date" id="startDate" onchange="updateTables()">
+                            <span>to</span>
+                            <input type="date" id="endDate" onchange="updateTables()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Prompt Usage</h3>
+                    <div class="stat-value prompt-usage" id="prompt-usage">$0.00</div>
+                    <div class="stat-label">Text Generation</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Completion Usage</h3>
+                    <div class="stat-value completion-usage" id="completion-usage">$0.00</div>
+                    <div class="stat-label">Response Generation</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Images Usage</h3>
+                    <div class="stat-value images-usage" id="images-usage">$0.00</div>
+                    <div class="stat-label">Image Generation</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Video Usage</h3>
+                    <div class="stat-value video-usage" id="video-usage">$0.00</div>
+                    <div class="stat-label">Video Generation</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Audio Usage</h3>
+                    <div class="stat-value audio-usage" id="audio-usage">$0.00</div>
+                    <div class="stat-label">Audio Processing</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Usage</h3>
+                    <div class="stat-value usage-total" id="total-usage">$0.00</div>
+                    <div class="stat-label">All Services</div>
+                </div>
+            </div>
+
+            <div class="table-section">
+                <h3>Model Usage Breakdown</h3>
+                <div class="filter-controls">
+                    <input type="text" class="filter-input" id="modelFilter" placeholder="Search models..."
+                        onkeyup="filterModels()">
+                    <div class="filter-checkbox">
+                        <input type="checkbox" id="hideZeroUsage" onchange="updateTables()" checked>
+                        <label for="hideZeroUsage">Hide $0.00 usage</label>
+                    </div>
+                    <div class="filter-checkbox">
+                        <input type="checkbox" id="hideSmallUsage" onchange="updateTables()">
+                        <label for="hideSmallUsage">Hide usage under $1.00</label>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table id="modelsTable">
+                        <thead>
+                            <tr>
+                                <th>Model Name</th>
+                                <th>Total Usage</th>
+                                <th>Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modelsTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="table-section">
+                <h3>Daily Usage Breakdown</h3>
+                <div class="table-container">
+                    <table id="dailyTable">
+                        <thead id="dailyTableHead">
+                        </thead>
+                        <tbody id="dailyTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let userInfo = null;
+        let usageData = null;
+        let allModels = {};
+        let currentDateRange = 7;
+
+        function roundMoney(value) {
+            if (typeof value === 'string') {
+                value = parseFloat(value.replace('$', ''));
+            }
+            return parseFloat(value.toFixed(2));
+        }
+
+        function formatMoney(value) {
+            return '$' + roundMoney(value).toFixed(2);
+        }
+
+        async function fetchData(forceRefresh = false) {
+            try {
+                const refreshParam = forceRefresh ? '?refresh=true' : '';
+                const [infoResponse, usageResponse] = await Promise.all([
+                    fetch('/api/info' + refreshParam),
+                    fetch('/api/usage' + refreshParam)
+                ]);
+
+                if (!infoResponse.ok || !usageResponse.ok) {
+                    throw new Error('Failed to fetch data');
+                }
+
+                userInfo = await infoResponse.json();
+                usageData = await usageResponse.json();
+
+                // Process and round all money values
+                userInfo.credit_left = formatMoney(userInfo.credit_left);
+                userInfo.usage.prompt_usage = formatMoney(userInfo.usage.prompt_usage);
+                userInfo.usage.completion_usage = formatMoney(userInfo.usage.completion_usage);
+                userInfo.usage.audio_usage = formatMoney(userInfo.usage.audio_usage);
+                userInfo.usage.embeddings_usage = formatMoney(userInfo.usage.embeddings_usage);
+                userInfo.usage.images_usage = formatMoney(userInfo.usage.images_usage);
+                userInfo.usage.video_usage = formatMoney(userInfo.usage.video_usage);
+                userInfo.usage.total_usage = formatMoney(userInfo.usage.total_usage);
+
+                // Calculate all models usage
+                calculateAllModels();
+
+                displayData();
+                setDateRange(7); // Default to 7 days
+                updateCacheStatus();
+            } catch (error) {
+                showError('Failed to load data: ' + error.message);
+            }
+        }
+
+        async function refreshData() {
+            const refreshBtn = document.getElementById('refreshBtn');
+            const refreshIcon = document.getElementById('refreshIcon');
+
+            refreshBtn.disabled = true;
+            refreshIcon.innerHTML = '<span class="spinner"></span>';
+
+            try {
+                await fetchData(true);
+            } finally {
+                refreshBtn.disabled = false;
+                refreshIcon.innerHTML = '🔄';
+            }
+        }
+
+        async function updateCacheStatus() {
+            try {
+                const response = await fetch('/api/cache/status');
+                const status = await response.json();
+
+                const cacheStatusEl = document.getElementById('cacheStatus');
+                let statusText = '';
+
+                if (status.info && status.info.cached) {
+                    const lastUpdated = new Date(status.info.last_updated);
+                    const isValid = status.info.is_valid;
+                    statusText = `Last updated: ${lastUpdated.toLocaleTimeString()} `;
+                    statusText += isValid ? '(cached)' : '(expired)';
+                    cacheStatusEl.className = `cache-status ${isValid ? 'cache-valid' : 'cache-expired'}`;
+                } else {
+                    statusText = 'No cache available';
+                    cacheStatusEl.className = 'cache-status';
+                }
+
+                cacheStatusEl.textContent = statusText;
+            } catch (error) {
+                console.error('Failed to update cache status:', error);
+            }
+        }
+
+        function calculateAllModels() {
+            allModels = {};
+            if (!usageData || !usageData.usage_breakdown) {
+                console.log('No usage breakdown data available');
+                return;
+            }
+
+            // Debug: log sample data structure
+            if (usageData.usage_breakdown.length > 0) {
+                console.log('Sample usage data:', usageData.usage_breakdown[0]);
+                console.log('Available dates:', usageData.usage_breakdown.map(d => d.date).slice(0, 5));
+            }
+
+            usageData.usage_breakdown.forEach(day => {
+                Object.keys(day).forEach(key => {
+                    if (key !== 'date') {
+                        const value = roundMoney(day[key]);
+                        if (value > 0) {
+                            allModels[key] = (allModels[key] || 0) + value;
+                        }
+                    }
+                });
+            });
+        }
+
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('error').textContent = message;
+        }
+
+        function displayData() {
+            if (!userInfo || !usageData) {
+                console.error('Missing data:', { userInfo, usageData });
+                return;
+            }
+
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('content').style.display = 'block';
+
+            // Display user info
+            document.getElementById('discord-name').textContent = userInfo.discord_name || 'Unknown';
+            document.getElementById('discord-id').textContent = userInfo.discord_id || 'Unknown';
+            document.getElementById('credit-left').textContent = userInfo.credit_left || '$0.00';
+
+            // Display usage stats with fallbacks
+            const usage = userInfo.usage || {};
+            document.getElementById('prompt-usage').textContent = usage.prompt_usage || '$0.00';
+            document.getElementById('completion-usage').textContent = usage.completion_usage || '$0.00';
+            document.getElementById('images-usage').textContent = usage.images_usage || '$0.00';
+            document.getElementById('video-usage').textContent = usage.video_usage || '$0.00';
+            document.getElementById('audio-usage').textContent = usage.audio_usage || '$0.00';
+            document.getElementById('total-usage').textContent = usage.total_usage || '$0.00';
+
+            updateTables();
+        }
+
+        function getFilteredDateRange() {
+            const endDateInput = document.getElementById('endDate').value;
+            const startDateInput = document.getElementById('startDate').value;
+
+            if (!endDateInput || !startDateInput) {
+                return usageData.usage_breakdown;
+            }
+
+            // Convert input dates to Date objects for proper comparison
+            const startDate = new Date(startDateInput);
+            const endDate = new Date(endDateInput);
+
+            // Set time to ensure proper range inclusion
+            startDate.setHours(0, 0, 0, 0);
+            endDate.setHours(23, 59, 59, 999);
+
+            return usageData.usage_breakdown.filter(day => {
+                // Convert API date format "May 01, 2025" to Date object
+                const dayDate = new Date(day.date);
+                return dayDate >= startDate && dayDate <= endDate;
+            });
+        }
+
+        function updateTables() {
+            if (!usageData || !usageData.usage_breakdown) {
+                console.log('No usage data available yet');
+                return;
+            }
+
+            // Debug: log the filtered data
+            const filteredData = getFilteredDateRange();
+            console.log('Filtered date range data:', filteredData.length, 'days');
+            console.log('Date range:', document.getElementById('startDate').value, 'to', document.getElementById('endDate').value);
+            if (filteredData.length > 0) {
+                console.log('Sample dates:', filteredData.map(d => d.date).slice(0, 3));
+            }
+
+            updateModelsTable();
+            updateDailyTable();
+        }
+
+        function updateModelsTable() {
+            const dateRangeData = getFilteredDateRange();
+            const hideZeroUsage = document.getElementById('hideZeroUsage').checked;
+            const hideSmallUsage = document.getElementById('hideSmallUsage').checked;
+            const filterText = document.getElementById('modelFilter').value.toLowerCase();
+
+            // Calculate model usage for the selected date range
+            const modelUsage = {};
+            let totalUsage = 0;
+
+            dateRangeData.forEach(day => {
+                Object.keys(day).forEach(key => {
+                    if (key !== 'date') {
+                        const value = roundMoney(day[key]);
+                        modelUsage[key] = (modelUsage[key] || 0) + value;
+                        totalUsage += value;
+                    }
+                });
+            });
+
+            // Filter and sort models
+            const filteredModels = Object.entries(modelUsage)
+                .filter(([model, usage]) => {
+                    if (hideZeroUsage && usage === 0) return false;
+                    if (hideSmallUsage && usage < 1.00) return false;
+                    if (filterText && !model.toLowerCase().includes(filterText)) return false;
+                    return true;
+                })
+                .sort(([, a], [, b]) => b - a);
+
+            // Update table
+            const tbody = document.getElementById('modelsTableBody');
+            tbody.innerHTML = '';
+
+            filteredModels.forEach(([model, usage]) => {
+                const percentage = totalUsage > 0 ? ((usage / totalUsage) * 100).toFixed(1) : '0.0';
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="model-name">${model}</td>
+                    <td class="usage-amount ${usage === 0 ? 'zero' : ''}">${formatMoney(usage)}</td>
+                    <td>${percentage}%</td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            if (filteredModels.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = '<td colspan="3" style="text-align: center; color: #718096;">No models match the current filters</td>';
+                tbody.appendChild(row);
+            }
+        }
+
+        function updateDailyTable() {
+            const dateRangeData = getFilteredDateRange();
+
+            if (dateRangeData.length === 0) {
+                document.getElementById('dailyTableHead').innerHTML = '';
+                document.getElementById('dailyTableBody').innerHTML = '<tr><td style="text-align: center; color: #718096;">No data for selected date range</td></tr>';
+                return;
+            }
+
+            // Get all unique models from the date range
+            const modelsInRange = new Set();
+            dateRangeData.forEach(day => {
+                Object.keys(day).forEach(key => {
+                    if (key !== 'date' && day[key] > 0) {
+                        modelsInRange.add(key);
+                    }
+                });
+            });
+
+            const sortedModels = Array.from(modelsInRange).sort();
+
+            // Create table header
+            const thead = document.getElementById('dailyTableHead');
+            thead.innerHTML = `
+                <tr>
+                    <th>Date</th>
+                    ${sortedModels.slice(0, 10).map(model => `<th>${model.length > 15 ? model.substring(0, 15) + '...' : model}</th>`).join('')}
+                    <th>Daily Total</th>
+                </tr>
+            `;
+
+            // Create table body
+            const tbody = document.getElementById('dailyTableBody');
+            tbody.innerHTML = '';
+
+            dateRangeData.reverse().forEach(day => {
+                let dailyTotal = 0;
+                const row = document.createElement('tr');
+
+                // Calculate daily total
+                Object.keys(day).forEach(key => {
+                    if (key !== 'date') {
+                        dailyTotal += roundMoney(day[key]);
+                    }
+                });
+
+                let rowHTML = `<td class="date-column">${new Date(day.date).toLocaleDateString()}</td>`;
+
+                // Add model usage columns (limit to top 10 for readability)
+                sortedModels.slice(0, 10).forEach(model => {
+                    const usage = day[model] || 0;
+                    rowHTML += `<td class="usage-amount ${usage === 0 ? 'zero' : ''}">${formatMoney(usage)}</td>`;
+                });
+
+                rowHTML += `<td class="usage-amount" style="font-weight: bold;">${formatMoney(dailyTotal)}</td>`;
+
+                row.innerHTML = rowHTML;
+                tbody.appendChild(row);
+            });
+        }
+
+        function filterModels() {
+            updateModelsTable();
+        }
+
+        function setDateRange(days, buttonElement) {
+            // Update button states
+            document.querySelectorAll('.quick-date-btn').forEach(btn => btn.classList.remove('active'));
+            if (buttonElement) {
+                buttonElement.classList.add('active');
+            } else {
+                // Find the button that matches the days value
+                document.querySelectorAll('.quick-date-btn').forEach(btn => {
+                    if (btn.textContent.includes(days + ' Days')) {
+                        btn.classList.add('active');
+                    }
+                });
+            }
+
+            const endDate = new Date();
+            const startDate = new Date();
+            startDate.setDate(endDate.getDate() - days);
+
+            document.getElementById('endDate').value = endDate.toISOString().split('T')[0];
+            document.getElementById('startDate').value = startDate.toISOString().split('T')[0];
+
+            currentDateRange = days;
+            updateTables();
+        }
+
+        function setYesterday(buttonElement) {
+            // Update button states
+            document.querySelectorAll('.quick-date-btn').forEach(btn => btn.classList.remove('active'));
+            if (buttonElement) {
+                buttonElement.classList.add('active');
+            }
+
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+
+            const yesterdayStr = yesterday.toISOString().split('T')[0];
+            document.getElementById('endDate').value = yesterdayStr;
+            document.getElementById('startDate').value = yesterdayStr;
+
+            currentDateRange = 'yesterday';
+            updateTables();
+        }
+
+        // Initialize the app
+        fetchData();
+
+        // Update cache status every 30 seconds
+        setInterval(updateCacheStatus, 30000);
+    </script>
+</body>
+
+</html>
