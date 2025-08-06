@@ -1,5 +1,7 @@
 # HyprLab Usage Dashboard
 
+![screenshot](./screenshot.png)
+
 A simple web dashboard to view your HyprLab API usage statistics with caching and table-based data visualization.
 
 ## Features
