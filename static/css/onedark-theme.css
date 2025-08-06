@@ -500,20 +500,7 @@ tr:hover {
     text-align: center;
 }
 
-.spinner {
-    display: inline-block;
-    width: 14px;
-    height: 14px;
-    border: 2px solid var(--bg-primary);
-    border-top-color: transparent;
-    animation: spin 1s ease-in-out infinite;
-}
 
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
 
 /* Custom Scrollbar Styles - OneDark Theme */
 /* Webkit browsers (Chrome, Safari, Edge) */

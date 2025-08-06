@@ -108,7 +108,8 @@
                             </div>
                         </div>
                         <div class="view-controls">
-                            <button class="view-toggle-btn active" onclick="switchModelView('table', this)">Table</button>
+                            <button class="view-toggle-btn active"
+                                onclick="switchModelView('table', this)">Table</button>
                             <button class="view-toggle-btn" onclick="switchModelView('bar', this)">Bar Chart</button>
                             <button class="view-toggle-btn" onclick="switchModelView('pie', this)">Pie Chart</button>
                         </div>
@@ -213,16 +214,15 @@
 
         async function refreshData() {
             const refreshBtn = document.getElementById('refreshBtn');
-            const refreshIcon = document.getElementById('refreshIcon');
 
             refreshBtn.disabled = true;
-            refreshIcon.innerHTML = '<span class="spinner"></span>';
+            refreshBtn.innerHTML = 'Refreshing...';
 
             try {
                 await fetchData(true);
             } finally {
                 refreshBtn.disabled = false;
-                refreshIcon.innerHTML = '🔄';
+                refreshBtn.innerHTML = 'Refresh Data';
             }
         }
 
@@ -553,18 +553,18 @@
         function switchModelView(viewType, buttonElement) {
             try {
                 console.log('switchModelView called with:', viewType, buttonElement);
-                
+
                 // Update button states - target the specific section
                 const modelSection = document.getElementById('modelUsageSection');
                 if (!modelSection) {
                     console.error('Model section not found');
                     return;
                 }
-                
+
                 modelSection.querySelectorAll('.view-toggle-btn').forEach(btn => {
                     btn.classList.remove('active');
                 });
-                
+
                 if (!buttonElement) {
                     console.error('Button element is null');
                     return;
@@ -575,7 +575,7 @@
                 const tableView = document.getElementById('modelTableView');
                 const barChartView = document.getElementById('modelBarChartView');
                 const pieChartView = document.getElementById('modelPieChartView');
-                
+
                 if (tableView) tableView.style.display = 'none';
                 if (barChartView) barChartView.classList.remove('active');
                 if (pieChartView) pieChartView.classList.remove('active');
@@ -591,7 +591,7 @@
                     if (pieChartView) pieChartView.classList.add('active');
                     updateModelPieChart();
                 }
-                
+
                 console.log('switchModelView completed, currentModelView:', currentModelView);
             } catch (error) {
                 console.error('Error in switchModelView:', error);
@@ -605,7 +605,7 @@
                 console.error('Daily section not found');
                 return;
             }
-            
+
             dailySection.querySelectorAll('.view-toggle-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
@@ -655,7 +655,7 @@
                 .slice(0, 20); // Limit to top 20 for readability
 
             const ctx = document.getElementById('modelBarChart').getContext('2d');
-            
+
             if (modelBarChart) {
                 modelBarChart.destroy();
             }
@@ -686,11 +686,11 @@
                             borderColor: chartColors.border,
                             borderWidth: 1,
                             callbacks: {
-                                title: function(context) {
+                                title: function (context) {
                                     const index = context[0].dataIndex;
                                     return filteredModels[index][0];
                                 },
-                                label: function(context) {
+                                label: function (context) {
                                     return 'Usage: $' + context.parsed.y.toFixed(2);
                                 }
                             }
@@ -704,7 +704,7 @@
                             },
                             ticks: {
                                 color: chartColors.text,
-                                callback: function(value) {
+                                callback: function (value) {
                                     return '$' + value.toFixed(2);
                                 }
                             }
@@ -752,7 +752,7 @@
                 .slice(0, 10); // Limit to top 10 for pie chart readability
 
             const ctx = document.getElementById('modelPieChart').getContext('2d');
-            
+
             if (modelPieChart) {
                 modelPieChart.destroy();
             }
@@ -787,11 +787,11 @@
                             borderColor: chartColors.border,
                             borderWidth: 1,
                             callbacks: {
-                                title: function(context) {
+                                title: function (context) {
                                     const index = context[0].dataIndex;
                                     return filteredModels[index][0];
                                 },
-                                label: function(context) {
+                                label: function (context) {
                                     const total = context.dataset.data.reduce((a, b) => a + b, 0);
                                     const percentage = ((context.parsed / total) * 100).toFixed(1);
                                     return 'Usage: $' + context.parsed.toFixed(2) + ' (' + percentage + '%)';
@@ -805,7 +805,7 @@
 
         function updateDailyBarChart() {
             const dateRangeData = getFilteredDateRange();
-            
+
             if (dateRangeData.length === 0) {
                 return;
             }
@@ -825,7 +825,7 @@
             }).reverse(); // Reverse to show chronologically
 
             const ctx = document.getElementById('dailyBarChart').getContext('2d');
-            
+
             if (dailyBarChart) {
                 dailyBarChart.destroy();
             }
@@ -856,7 +856,7 @@
                             borderColor: chartColors.border,
                             borderWidth: 1,
                             callbacks: {
-                                label: function(context) {
+                                label: function (context) {
                                     return 'Usage: $' + context.parsed.y.toFixed(2);
                                 }
                             }
@@ -870,7 +870,7 @@
                             },
                             ticks: {
                                 color: chartColors.text,
-                                callback: function(value) {
+                                callback: function (value) {
                                     return '$' + value.toFixed(2);
                                 }
                             }
@@ -891,16 +891,16 @@
 
         // Update the existing updateTables function to also update charts
         const originalUpdateTables = updateTables;
-        updateTables = function() {
+        updateTables = function () {
             originalUpdateTables();
-            
+
             // Update charts if they are currently visible
             if (currentModelView === 'bar') {
                 updateModelBarChart();
             } else if (currentModelView === 'pie') {
                 updateModelPieChart();
             }
-            
+
             if (currentDailyView === 'bar') {
                 updateDailyBarChart();
             }
