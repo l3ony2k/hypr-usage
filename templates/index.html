@@ -7,9 +7,11 @@
     <title>HyprLab Usage Dashboard</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/onedark-theme.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
 </head>
 
 <body>
+    <script>checkAuth();</script>
     <div class="container">
         <div id="loading" class="loading">
             Loading your HyprLab usage data...
@@ -37,9 +39,6 @@
                         <button class="refresh-btn" id="refreshBtn" onclick="refreshData()">
                             Refresh Data
                         </button>
-                        <div class="cache-status" id="cacheStatus">
-                            Loading cache status...
-                        </div>
                     </div>
                     <div class="date-controls">
                         <div class="quick-date-buttons">
@@ -177,15 +176,50 @@
         }
 
         async function fetchData(forceRefresh = false) {
+            const apiKey = getApiKey();
+            if (!apiKey) {
+                checkAuth();
+                return;
+            }
+
+            const headers = {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json'
+            };
+
             try {
-                const refreshParam = forceRefresh ? '?refresh=true' : '';
-                const [infoResponse, usageResponse] = await Promise.all([
-                    fetch('/api/info' + refreshParam),
-                    fetch('/api/usage' + refreshParam)
-                ]);
+                const cacheName = 'hyprlab-dashboard-cache-v1';
+                const infoUrl = '/api/info';
+                const usageUrl = '/api/usage';
+
+                let infoResponse, usageResponse;
+
+                if (forceRefresh) {
+                    await caches.delete(cacheName);
+                }
+
+                const cache = await caches.open(cacheName);
+
+                infoResponse = await cache.match(infoUrl);
+                usageResponse = await cache.match(usageUrl);
+
+                if (!infoResponse) {
+                    infoResponse = await fetch(infoUrl, { headers });
+                    if(infoResponse.ok) cache.put(infoUrl, infoResponse.clone());
+                }
+                if (!usageResponse) {
+                    usageResponse = await fetch(usageUrl, { headers });
+                    if(usageResponse.ok) cache.put(usageUrl, usageResponse.clone());
+                }
 
                 if (!infoResponse.ok || !usageResponse.ok) {
-                    throw new Error('Failed to fetch data');
+                    const errorInfo = await infoResponse.json();
+                    const errorUsage = await usageResponse.json();
+                    if (infoResponse.status === 401 || usageResponse.status === 401) {
+                        localStorage.removeItem('HYPRLAB_API_KEY');
+                        checkAuth();
+                    }
+                    throw new Error(errorInfo.error || errorUsage.error || 'Failed to fetch data');
                 }
 
                 userInfo = await infoResponse.json();
@@ -201,12 +235,9 @@
                 userInfo.usage.video_usage = formatMoney(userInfo.usage.video_usage);
                 userInfo.usage.total_usage = formatMoney(userInfo.usage.total_usage);
 
-                // Calculate all models usage
                 calculateAllModels();
-
                 displayData();
-                setDateRange(7); // Default to 7 days
-                updateCacheStatus();
+                setDateRange(7);
             } catch (error) {
                 showError('Failed to load data: ' + error.message);
             }
@@ -214,7 +245,6 @@
 
         async function refreshData() {
             const refreshBtn = document.getElementById('refreshBtn');
-
             refreshBtn.disabled = true;
             refreshBtn.innerHTML = 'Refreshing...';
 
@@ -223,31 +253,6 @@
             } finally {
                 refreshBtn.disabled = false;
                 refreshBtn.innerHTML = 'Refresh Data';
-            }
-        }
-
-        async function updateCacheStatus() {
-            try {
-                const response = await fetch('/api/cache/status');
-                const status = await response.json();
-
-                const cacheStatusEl = document.getElementById('cacheStatus');
-                let statusText = '';
-
-                if (status.info && status.info.cached) {
-                    const lastUpdated = new Date(status.info.last_updated);
-                    const isValid = status.info.is_valid;
-                    statusText = `Last updated: ${lastUpdated.toLocaleTimeString()} `;
-                    statusText += isValid ? '(cached)' : '(expired)';
-                    cacheStatusEl.className = `cache-status ${isValid ? 'cache-valid' : 'cache-expired'}`;
-                } else {
-                    statusText = 'No cache available';
-                    cacheStatusEl.className = 'cache-status';
-                }
-
-                cacheStatusEl.textContent = statusText;
-            } catch (error) {
-                console.error('Failed to update cache status:', error);
             }
         }
 
@@ -908,9 +913,6 @@
 
         // Initialize the app
         fetchData();
-
-        // Update cache status every 30 seconds
-        setInterval(updateCacheStatus, 30000);
     </script>
 </body>
 
