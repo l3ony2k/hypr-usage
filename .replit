@@ -1,0 +1,13 @@
+# The command to run when the user clicks the "Run" button.
+run = "python app.py"
+
+# The language of the repl.
+language = "python3"
+
+# Specifies which files to show by default in the editor.
+entrypoint = "app.py"
+
+# Configuration for the Replit environment.
+[nix]
+# Specifies the Nix channel to use. 'stable-23_11' is a good default.
+channel = "stable-23_11"
