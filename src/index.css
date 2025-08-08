@@ -1,0 +1,237 @@
+/* OneDark Theme Variables */
+:root {
+    /* Background Colors */
+    --bg-primary: #21252b;
+    /* Main background */
+    --bg-secondary: #282c34;
+    /* Sections/cards */
+    --bg-tertiary: #2c313a;
+    /* Hover states */
+
+    /* Border Colors */
+    --border-primary: #3e4451;
+    /* Main borders */
+    --border-secondary: #4f5666;
+    /* Hover borders */
+
+    /* Text Colors */
+    --text-primary: #abb2bf;
+    /* Main text */
+    --text-secondary: #5c6370;
+    /* Muted text */
+    --text-tertiary: #ffffff;
+    /* High contrast text */
+
+    /* Accent Colors */
+    --color-red: #e06c75;
+    /* Headers, errors */
+    --color-green: #98c379;
+    /* Success, credits */
+    --color-blue: #61afef;
+    /* Buttons, links */
+    --color-yellow: #e5c07b;
+    /* Warnings, highlights */
+    --color-purple: #c678dd;
+    /* Special elements */
+    --color-cyan: #56b6c2;
+    /* Info */
+
+    /* Usage Type Colors */
+    --usage-prompt: var(--color-blue);
+    --usage-completion: var(--color-green);
+    --usage-audio: var(--color-yellow);
+    --usage-images: var(--color-red);
+    --usage-video: var(--color-purple);
+    --usage-embeddings: var(--color-cyan);
+    --usage-total: var(--color-yellow);
+
+    /* Font Settings */
+    --font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    --font-size-small: 11px;
+    --font-size-normal: 12px;
+    --font-size-medium: 14px;
+    --font-size-large: 16px;
+    --font-size-xlarge: 18px;
+
+    /* Spacing */
+    --spacing-xs: 5px;
+    --spacing-sm: 8px;
+    --spacing-md: 12px;
+    --spacing-lg: 15px;
+    --spacing-xl: 20px;
+
+    /* Layout */
+    --border-width: 1px;
+    --transition-speed: 0.2s;
+}
+
+/* Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-family);
+    background: var(--bg-primary);
+    min-height: 100vh;
+    color: var(--text-primary);
+    padding: var(--spacing-lg);
+    line-height: 1.4;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Loading and Error States */
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-primary);
+    font-size: 1.1em;
+}
+
+.error {
+    background: var(--bg-secondary);
+    border: var(--border-width) solid var(--color-red);
+    color: var(--color-red);
+    padding: var(--spacing-lg);
+    margin: var(--spacing-lg) 0;
+    text-align: center;
+}
+
+/* Login Styles */
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.login-form {
+    text-align: center;
+    padding: 2rem;
+    border: 1px solid var(--border-primary);
+    background-color: var(--bg-secondary);
+}
+
+.login-form h1 {
+    color: var(--color-red);
+    margin-bottom: var(--spacing-lg);
+}
+
+.login-form p {
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-lg);
+}
+
+.login-form input[type="text"] {
+    width: 300px;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+    border: 1px solid var(--border-primary);
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: inherit;
+}
+
+.login-form button {
+    padding: 0.5rem 1rem;
+    border: none;
+    background-color: var(--color-blue);
+    color: var(--bg-primary);
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 600;
+}
+
+.login-form button:hover {
+    background-color: #4aa3f0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    
+    .login-form input[type="text"] {
+        width: 100%;
+        max-width: 300px;
+    }
+}
+
+/* Custom Scrollbar Styles - OneDark Theme */
+/* Webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+    border: var(--border-width) solid var(--border-primary);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-primary);
+    border: none;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--border-secondary);
+}
+
+::-webkit-scrollbar-thumb:active {
+    background: var(--color-blue);
+}
+
+::-webkit-scrollbar-corner {
+    background: var(--bg-primary);
+}
+
+/* Firefox scrollbar */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-primary) var(--bg-primary);
+}
+
+/* Custom scrollbar for table containers */
+.table-container::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+.table-container::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+    border: var(--border-width) solid var(--border-primary);
+}
+
+.table-container::-webkit-scrollbar-thumb {
+    background: var(--border-primary);
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+    background: var(--color-blue);
+}
+
+/* Scrollbar for filter inputs with overflow */
+.filter-input::-webkit-scrollbar {
+    height: 6px;
+}
+
+.filter-input::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+}
+
+.filter-input::-webkit-scrollbar-thumb {
+    background: var(--border-primary);
+}
+
+.filter-input::-webkit-scrollbar-thumb:hover {
+    background: var(--color-blue);
+}
