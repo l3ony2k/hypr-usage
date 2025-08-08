@@ -445,7 +445,9 @@ tr:hover {
     .chart-container {
         height: 300px;
     }
-}/*
+}
+
+/*
  Tooltip Styles */
 .tooltip {
     position: relative;
@@ -492,4 +494,117 @@ tr:hover {
 .refresh-section {
     position: relative;
     z-index: 1;
+}
+
+/* Foo
+ter Styles */
+.footer {
+    background: var(--bg-primary);
+    padding: var(--spacing-xl);
+    margin-top: var(--spacing-xl);
+    text-align: center;
+}
+
+.footer-content {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.footer-description {
+    color: var(--text-secondary);
+    font-size: var(--font-size-normal);
+    margin-bottom: var(--spacing-sm);
+}
+
+.footer-links {
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    gap: 1em;
+}
+
+.footer-link {
+    color: var(--color-blue);
+    text-decoration: none;
+    font-size: var(--font-size-normal);
+    transition: color var(--transition-speed);
+}
+
+.footer-link:hover {
+    color: #4aa3f0;
+    text-decoration: underline;
+}
+
+.footer-link:visited {
+    color: var(--color-blue);
+}
+
+/* Responsive footer */
+@media (max-width: 768px) {
+    .footer-description {
+        font-size: var(--font-size-small);
+    }
+
+    .footer-link {
+        font-size: var(--font-size-small);
+    }
+}/* 
+Theme Switcher Styles */
+.footer-separator {
+    color: var(--text-secondary);
+    margin: 0 var(--spacing-sm);
+}
+
+.theme-switcher {
+    position: relative;
+    display: inline-block;
+    font-size: var(--font-size-normal);
+}
+
+.theme-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    font-family: inherit;
+    font-size: inherit;
+}
+
+.theme-menu {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg-secondary);
+    border: var(--border-width) solid var(--border-primary);
+    margin-bottom: var(--spacing-sm);
+    min-width: 120px;
+    z-index: 1000;
+}
+
+.theme-option {
+    display: block;
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: var(--font-size-normal);
+    text-align: left;
+    transition: background var(--transition-speed);
+}
+
+.theme-option:hover {
+    background: var(--bg-tertiary);
+}
+
+.theme-option.active {
+    background: var(--color-blue);
+    color: var(--bg-primary);
+}
+
+.theme-option.active:hover {
+    background: #4aa3f0;
 }

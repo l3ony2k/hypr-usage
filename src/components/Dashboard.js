@@ -4,6 +4,7 @@ import Controls from './Controls';
 import StatsGrid from './StatsGrid';
 import ModelUsageSection from './ModelUsageSection';
 import DailyUsageSection from './DailyUsageSection';
+import Footer from './Footer';
 import { fetchUserInfo, fetchUsageData, refreshAllData, getLastUpdated } from '../services/api';
 import { removeApiKey } from '../services/auth';
 import './Dashboard.css';
@@ -122,6 +123,8 @@ const Dashboard = ({ onLogout }) => {
         usageData={usageData} 
         dateRange={dateRange}
       />
+      
+      <Footer />
     </div>
   );
 };
