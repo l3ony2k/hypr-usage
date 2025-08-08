@@ -153,4 +153,19 @@ export const refreshAllData = async () => {
   return { userInfo, usageData };
 };
 
+// Get last updated timestamp
+export const getLastUpdated = () => {
+  const infoCache = cache.info.timestamp || 
+    (localStorage.getItem('hyprlab_cache_info') ? 
+      JSON.parse(localStorage.getItem('hyprlab_cache_info')).timestamp : null);
+  
+  const usageCache = cache.usage.timestamp || 
+    (localStorage.getItem('hyprlab_cache_usage') ? 
+      JSON.parse(localStorage.getItem('hyprlab_cache_usage')).timestamp : null);
+  
+  // Return the most recent timestamp
+  const lastUpdated = Math.max(infoCache || 0, usageCache || 0);
+  return lastUpdated > 0 ? new Date(lastUpdated) : null;
+};
+
 export { roundMoney, formatMoney, clearCache };

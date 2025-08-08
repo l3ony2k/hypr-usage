@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Controls = ({ dateRange, onDateRangeChange, onRefresh, isRefreshing, onLogout }) => {
+const Controls = ({ dateRange, onDateRangeChange, onRefresh, isRefreshing, onLogout, lastUpdated }) => {
   const handleQuickDateChange = (days, type = 'days') => {
     const endDate = new Date();
     const startDate = new Date();
@@ -30,16 +30,40 @@ const Controls = ({ dateRange, onDateRangeChange, onRefresh, isRefreshing, onLog
     onDateRangeChange(newDateRange);
   };
 
+  const getTooltipText = () => {
+    if (!lastUpdated) return 'No data loaded yet';
+    
+    const now = new Date();
+    const diffMs = now - lastUpdated;
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    
+    let timeAgo;
+    if (diffMinutes < 1) {
+      timeAgo = 'Just now';
+    } else if (diffMinutes < 60) {
+      timeAgo = `${diffMinutes} minute${diffMinutes === 1 ? '' : 's'} ago`;
+    } else if (diffHours < 24) {
+      timeAgo = `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`;
+    } else {
+      timeAgo = lastUpdated.toLocaleDateString() + ' ' + lastUpdated.toLocaleTimeString();
+    }
+    
+    return `Last updated: ${timeAgo}`;
+  };
+
   return (
     <div className="controls-section">
       <div className="controls-grid">
         <div className="refresh-section">
           <button 
-            className="refresh-btn" 
+            className="refresh-btn tooltip" 
             onClick={onRefresh}
             disabled={isRefreshing}
+            title={getTooltipText()}
           >
             {isRefreshing ? 'Refreshing...' : 'Refresh Data'}
+            <span className="tooltip-text">{getTooltipText()}</span>
           </button>
           <button className="logout-btn" onClick={onLogout}>
             Logout

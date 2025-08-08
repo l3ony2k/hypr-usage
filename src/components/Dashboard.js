@@ -4,7 +4,7 @@ import Controls from './Controls';
 import StatsGrid from './StatsGrid';
 import ModelUsageSection from './ModelUsageSection';
 import DailyUsageSection from './DailyUsageSection';
-import { fetchUserInfo, fetchUsageData, refreshAllData } from '../services/api';
+import { fetchUserInfo, fetchUsageData, refreshAllData, getLastUpdated } from '../services/api';
 import { removeApiKey } from '../services/auth';
 import './Dashboard.css';
 
@@ -19,6 +19,7 @@ const Dashboard = ({ onLogout }) => {
     endDate: '',
     quickRange: 7
   });
+  const [lastUpdated, setLastUpdated] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -53,6 +54,7 @@ const Dashboard = ({ onLogout }) => {
 
       setUserInfo(userInfoData);
       setUsageData(usageDataResult);
+      setLastUpdated(getLastUpdated());
     } catch (error) {
       console.error('Error loading data:', error);
       setError(error.message);
@@ -106,6 +108,7 @@ const Dashboard = ({ onLogout }) => {
         onRefresh={handleRefresh}
         isRefreshing={isRefreshing}
         onLogout={handleLogout}
+        lastUpdated={lastUpdated}
       />
       
       <StatsGrid userInfo={userInfo} />

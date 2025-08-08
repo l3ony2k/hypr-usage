@@ -445,4 +445,51 @@ tr:hover {
     .chart-container {
         height: 300px;
     }
+}/*
+ Tooltip Styles */
+.tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip .tooltip-text {
+    visibility: hidden;
+    width: 200px;
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    text-align: center;
+    border: var(--border-width) solid var(--border-primary);
+    padding: var(--spacing-sm);
+    position: absolute;
+    z-index: 1000;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -100px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: var(--font-size-small);
+    font-weight: normal;
+    white-space: nowrap;
+}
+
+.tooltip .tooltip-text::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: var(--border-primary) transparent transparent transparent;
+}
+
+.tooltip:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Ensure tooltip appears above other elements */
+.refresh-section {
+    position: relative;
+    z-index: 1;
 }
