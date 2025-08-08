@@ -4,6 +4,7 @@ import Dashboard from './components/Dashboard';
 import { getApiKey } from './services/auth';
 import { ThemeProvider } from './contexts/ThemeContext';
 import './themes/light.css';
+import './themes/gruvbox.css';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -13,6 +14,10 @@ function App() {
     const apiKey = getApiKey();
     setIsAuthenticated(!!apiKey);
     setIsLoading(false);
+
+    // Initialize Chart.js defaults
+    const savedTheme = localStorage.getItem('hyprlab-theme') || 'onedark';
+    document.body.className = `theme-${savedTheme}`;
   }, []);
 
   const handleLogin = () => {

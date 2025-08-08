@@ -1,0 +1,69 @@
+/* Gruvbox Theme Variables */
+.theme-gruvbox {
+    /* Background Colors */
+    --bg-primary: #282828;
+    /* Main background */
+    --bg-secondary: #3c3836;
+    /* Sections/cards */
+    --bg-tertiary: #504945;
+    /* Hover states */
+
+    /* Border Colors */
+    --border-primary: #665c54;
+    /* Main borders */
+    --border-secondary: #7c6f64;
+    /* Hover borders */
+
+    /* Text Colors */
+    --text-primary: #ebdbb2;
+    /* Main text */
+    --text-secondary: #a89984;
+    /* Muted text */
+    --text-tertiary: #fbf1c7;
+    /* High contrast text */
+
+    /* Accent Colors */
+    --color-red: #fb4934;
+    /* Headers, errors */
+    --color-green: #b8bb26;
+    /* Success, credits */
+    --color-blue: #83a598;
+    /* Buttons, links */
+    --color-yellow: #fabd2f;
+    /* Warnings, highlights */
+    --color-purple: #d3869b;
+    /* Special elements */
+    --color-cyan: #8ec07c;
+    /* Info */
+
+    /* Usage Type Colors */
+    --usage-prompt: var(--color-blue);
+    --usage-completion: var(--color-green);
+    --usage-audio: var(--color-yellow);
+    --usage-images: var(--color-red);
+    --usage-video: var(--color-purple);
+    --usage-embeddings: var(--color-cyan);
+    --usage-total: #fe8019;
+}
+
+/* Gruvbox theme scrollbar */
+.theme-gruvbox ::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+    border: var(--border-width) solid var(--border-primary);
+}
+
+.theme-gruvbox ::-webkit-scrollbar-thumb {
+    background: var(--border-primary);
+}
+
+.theme-gruvbox ::-webkit-scrollbar-thumb:hover {
+    background: var(--border-secondary);
+}
+
+.theme-gruvbox ::-webkit-scrollbar-thumb:active {
+    background: var(--color-blue);
+}
+
+.theme-gruvbox * {
+    scrollbar-color: var(--border-primary) var(--bg-primary);
+}

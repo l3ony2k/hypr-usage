@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { updateChartDefaults } from '../utils/chartColors';
 
 const ThemeContext = createContext();
 
@@ -18,11 +19,13 @@ export const ThemeProvider = ({ children }) => {
   useEffect(() => {
     localStorage.setItem('hyprlab-theme', theme);
     document.body.className = `theme-${theme}`;
+    updateChartDefaults(theme);
   }, [theme]);
 
   const themes = {
     onedark: 'OneDark',
-    light: 'Light'
+    light: 'Light',
+    gruvbox: 'Gruvbox'
   };
 
   const changeTheme = (newTheme) => {

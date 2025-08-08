@@ -10,6 +10,8 @@ import {
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import { roundMoney } from '../../services/api';
+import { useTheme } from '../../contexts/ThemeContext';
+import { getChartColors } from '../../utils/chartColors';
 
 ChartJS.register(
   CategoryScale,
@@ -22,16 +24,8 @@ ChartJS.register(
 
 const DailyBarChart = ({ data }) => {
   const chartRef = useRef();
-
-  // OneDark theme colors
-  const chartColors = {
-    primary: '#61afef',
-    background: '#21252b',
-    secondary: '#282c34',
-    border: '#3e4451',
-    text: '#abb2bf',
-    textSecondary: '#5c6370'
-  };
+  const { theme } = useTheme();
+  const chartColors = getChartColors(theme);
 
   const chartData = useMemo(() => {
     // Calculate daily totals

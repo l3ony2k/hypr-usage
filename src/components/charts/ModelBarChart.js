@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef } from 'react';
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -9,6 +9,8 @@ import {
     Legend,
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
+import { useTheme } from '../../contexts/ThemeContext';
+import { getChartColors } from '../../utils/chartColors';
 
 ChartJS.register(
     CategoryScale,
@@ -21,16 +23,8 @@ ChartJS.register(
 
 const ModelBarChart = ({ data }) => {
     const chartRef = useRef();
-
-    // OneDark theme colors
-    const chartColors = {
-        primary: '#61afef',
-        background: '#21252b',
-        secondary: '#282c34',
-        border: '#3e4451',
-        text: '#abb2bf',
-        textSecondary: '#5c6370'
-    };
+    const { theme } = useTheme();
+    const chartColors = getChartColors(theme);
 
     // Limit to top 20 for readability
     const limitedData = data.slice(0, 20);

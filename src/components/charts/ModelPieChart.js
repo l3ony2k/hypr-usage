@@ -6,39 +6,15 @@ import {
   Legend,
 } from 'chart.js';
 import { Pie } from 'react-chartjs-2';
+import { useTheme } from '../../contexts/ThemeContext';
+import { getChartColors } from '../../utils/chartColors';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const ModelPieChart = ({ data }) => {
   const chartRef = useRef();
-
-  // OneDark theme colors
-  const chartColors = {
-    primary: '#61afef',
-    success: '#98c379',
-    warning: '#e5c07b',
-    danger: '#e06c75',
-    info: '#56b6c2',
-    purple: '#c678dd',
-    background: '#21252b',
-    secondary: '#282c34',
-    border: '#3e4451',
-    text: '#abb2bf',
-    textSecondary: '#5c6370'
-  };
-
-  const chartColorPalette = [
-    chartColors.primary,
-    chartColors.success,
-    chartColors.warning,
-    chartColors.danger,
-    chartColors.info,
-    chartColors.purple,
-    '#d19a66',
-    '#56b6c2',
-    '#be5046',
-    '#4078f2'
-  ];
+  const { theme } = useTheme();
+  const chartColors = getChartColors(theme);
 
   // Limit to top 10 for pie chart readability
   const limitedData = data.slice(0, 10);
@@ -50,7 +26,7 @@ const ModelPieChart = ({ data }) => {
     datasets: [
       {
         data: limitedData.map(([, usage]) => usage),
-        backgroundColor: chartColorPalette.slice(0, limitedData.length),
+        backgroundColor: chartColors.palette.slice(0, limitedData.length),
         borderColor: chartColors.border,
         borderWidth: 1,
       },
